@@ -2,23 +2,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-//é…åˆ—ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã¨ã—ã¦ä½¿ç”¨. X+Y = Z+W = 3 ã¨ãªã£ã¦ã„ã‚‹ã®ã§3ã‹ã‚‰å¼•ãã¨ç›´äº¤æ–¹å‘ã«ãªã‚‹.
+//”z—ñ‚ÌƒCƒ“ƒfƒbƒNƒX‚Æ‚µ‚Äg—p. 3‚©‚çˆø‚­‚±‚Æ‚Å X+Y = Z+W = 3 ‚Æ‚È‚Á‚Ä‚¢‚é.
 #define X 0
 #define Z 1
 #define W 2
 #define Y 3
-//é»’ã¨ç™½ã«ä½¿ç”¨. ãã‚Œãã‚Œã®è‰²ã®é§’ã®æœ€åˆã®ç•ªå·ã‚’è¡¨ã™.
+//•‚Æ”’‚Ég—p. ‚»‚ê‚¼‚ê‚ÌF‚Ì‹î‚ÌÅ‰‚Ì”Ô†‚ğ•\‚·.
 #define BL 0
 #define WH 3
 
 typedef signed char int8;
 
-//ææ†‚ã ã¨æ€ã†ãŒæ¢ç´¢ã®éš›ã«ãƒ¡ãƒ¢ãƒªãŒä¸è¶³ã—ãªã„ã‚ˆã†ã«å°ã•ã„ã‚µã‚¤ã‚ºã«ã—ã¦ãŠã„ãŸ.
-//int8[6][4]ã® 1æ¬¡å…ƒç›®ãŒé§’, 2æ¬¡å…ƒç›®ãŒåº§æ¨™(X, Y, Z, W)
+//X—J‚¾‚Æv‚¤‚ª’Tõ‚ÌÛ‚Éƒƒ‚ƒŠ‚ª•s‘«‚µ‚È‚¢‚æ‚¤‚É¬‚³‚¢ƒTƒCƒY‚É‚µ‚Ä‚¨‚¢‚½.
+//int8[6][4]‚Ì 1ŸŒ³–Ú‚ª‹î, 2ŸŒ³–Ú‚ªÀ•W(X, Y, Z, W)
 typedef struct {
 	int8 stone[6][4];
 	int8 nextBW;
 } board_t;
+
+int Min(int a, int b)
+{
+	return a < b ? a : b;
+}
+int Max(int a, int b)
+{
+	return a < b ? b : a;
+}
 
 void BubbleStep(int* a, int* b)
 {
@@ -30,32 +39,32 @@ void BubbleStep(int* a, int* b)
 	}
 }
 
-//3ã¤ã®æ•´æ•°ãŒé€£ç¶šã—ã¦ã„ãŸã‚‰1ã‚’è¿”ã—, ãã‚Œä»¥å¤–ã¯0ã‚’è¿”ã™.
-int IsSuccessive(int a, int b, int c)
+//3‚Â‚Ì®”‚ª˜A‘±‚µ‚Ä‚¢‚½‚ç1‚ğ•Ô‚µ, ‚»‚êˆÈŠO‚Í0‚ğ•Ô‚·.
+int IsSuccessive(int a, int b, int c, int interval)
 {
 	BubbleStep(&a, &b);
 	BubbleStep(&b, &c);
 	BubbleStep(&a, &b);
 
-	if(b == a + 1 && c == a + 2)
+	if(b == a + interval && c == a + 2 * interval)
 		return 1;
 	else
 		return 0;
 }
 
-//1:é»’ã®å‹ã¡ -1:ç™½ã®å‹ã¡ 0:å‹ã¡è² ã‘ãªã—
+//1:•‚ÌŸ‚¿ -1:”’‚ÌŸ‚¿ 0:Ÿ‚¿•‰‚¯‚È‚µ
 int WinJudge(board_t* b)
 {
 	for (int i = 0; i < 4; i++)
 	{
 		if (b->stone[0][i] == b->stone[1][i] && b->stone[1][i] == b->stone[2][i])
 		{
-			if (IsSuccessive(b->stone[0][3 - i], b->stone[1][3 - i], b->stone[2][3 - i]))
+			if (IsSuccessive(b->stone[0][3 - i], b->stone[1][3 - i], b->stone[2][3 - i], (i == X || i == Y ? 1 : 2)))	//3-i‚Å X<->Y, Z<->W
 				return 1;
 		}
 		if (b->stone[3][i] == b->stone[4][i] && b->stone[4][i] == b->stone[5][i])
 		{
-			if (IsSuccessive(b->stone[3][3 - i], b->stone[4][3 - i], b->stone[5][3 - i]))
+			if (IsSuccessive(b->stone[3][3 - i], b->stone[4][3 - i], b->stone[5][3 - i], (i == X || i == Y ? 1 : 2)))
 				return -1;
 		}
 	}
@@ -84,9 +93,9 @@ void PrintBoard(board_t* b)
 	}
 }
 
-//"4C4E"ã®ã‚ˆã†ãªæ–‡å­—åˆ—ã‚’å…¥åŠ›
-//æ–°ã—ã„ç›¤é¢ã‚’ä½œæˆã—ã¦ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™. ã‚¨ãƒ©ãƒ¼ã®ã¨ãã¯NULLã‚’è¿”ã™.
-//é§’ã®ç§»å‹•å¯èƒ½åˆ¤å®šã¯ä»Šã®ã¨ã“ã‚ã—ã¦ã„ãªã„
+//"4C4E"‚Ì‚æ‚¤‚È•¶š—ñ‚ğ“ü—Í
+//V‚µ‚¢”Õ–Ê‚ğì¬‚µ‚Äƒ|ƒCƒ“ƒ^‚ğ•Ô‚·. ƒGƒ‰[‚Ì‚Æ‚«‚ÍNULL‚ğ•Ô‚·.
+//‹î‚ÌˆÚ“®‰Â”\”»’è‚Í¡‚Ì‚Æ‚±‚ë‚µ‚Ä‚¢‚È‚¢
 board_t* Move(board_t* b, char* cmd)
 {
 	if (strlen(cmd) != 4) return NULL;
@@ -122,16 +131,16 @@ board_t* Move(board_t* b, char* cmd)
 	return NULL;
 }
 
-//ç¾åœ¨ã®ç›¤é¢ã¨çµæœç”¨ã®é…åˆ—ã‚’æ¸¡ã™
-//å¯èƒ½æ‰‹ã®æ•°ã‚’è¿”ã™
+//Œ»İ‚Ì”Õ–Ê‚ÆŒ‹‰Ê—p‚Ì”z—ñ‚ğ“n‚·
+//‰Â”\è‚Ì”‚ğ•Ô‚·
 int SearchNext(board_t* b, board_t* resBoards[], char resCmds[][5])
 {
 	int count = 0;
 
 	for (int i = b->nextBW; i < 3 + b->nextBW; i++)
 	{
-		int8 ends[8];	//X+, X-, Z+, Z-, W+, W-, Y+, Y-æ–¹å‘ã«é€²ã‚“ã æ™‚ã®åˆ°ç€åº§æ¨™
-		//ä»–ã®é§’ã«ã¶ã¤ã‹ã‚‰ãªã„å ´åˆã®åˆ°ç€åº§æ¨™. Z, Wã¯éè‡ªæ˜ãªè¨ˆç®—ãŒå¿…è¦.
+		int8 ends[8];	//X+, X-, Z+, Z-, W+, W-, Y+, Y-•ûŒü‚Éi‚ñ‚¾‚Ì“’…À•W
+		//‘¼‚Ì‹î‚É‚Ô‚Â‚©‚ç‚È‚¢ê‡‚Ì“’…À•W. Z, W‚Í”ñ©–¾‚ÈŒvZ‚ª•K—v.
 		ends[0] = 4;
 		ends[1] = 0;
 		ends[2] = (b->stone[i][W] >= 0 ? 8 - b->stone[i][W] : 8 + b->stone[i][W]);
@@ -141,30 +150,30 @@ int SearchNext(board_t* b, board_t* resBoards[], char resCmds[][5])
 		ends[6] = 4;
 		ends[7] = 0;
 		
-		//ä»–ã®é§’ã«ã‚ˆã‚‹åˆ¶é™
+		//‘¼‚Ì‹î‚É‚æ‚é§ŒÀ
 		for (int j = 0; j < 6; j++)
 		{
 			if (j == i)
 				continue;
 
-			//å‹•ã‹ã—ãŸã„é§’ã¨ã„ãšã‚Œã‹ã®åº§æ¨™ãŒç­‰ã—ã„ã¨ãåˆ¶é™
+			//“®‚©‚µ‚½‚¢‹î‚Æ‚¢‚¸‚ê‚©‚ÌÀ•W‚ª“™‚µ‚¢‚Æ‚«§ŒÀ
 			for (int k = 0; k < 4; k++)
 			{
 				if (b->stone[j][k] == b->stone[i][k])
 				{
-					if (b->stone[j][3 - k] > b->stone[i][3 - k])	//ç›´äº¤+æ–¹å‘ã‚’åˆ¶é™
-						ends[2 * (3 - k)] = min(ends[2 * (3 - k)], b->stone[j][3 - k] - (k == X || k == Y ? 1 : 2));	//X, Yã¯éš£ãŒ+-1, Z, Wã¯+-2
+					if (b->stone[j][3 - k] > b->stone[i][3 - k])	//’¼Œğ+•ûŒü‚ğ§ŒÀ
+						ends[2 * (3 - k)] = Min(ends[2 * (3 - k)], b->stone[j][3 - k] - (k == X || k == Y ? 1 : 2));	//X, Y‚Í—×‚ª+-1, Z, W‚Í+-2
 					
 					else
-						ends[2 * (3 - k) + 1] = max(ends[2 * (3 - k) + 1], b->stone[j][3 - k] + (k == X || k == Y ? 1 : 2));
+						ends[2 * (3 - k) + 1] = Max(ends[2 * (3 - k) + 1], b->stone[j][3 - k] + (k == X || k == Y ? 1 : 2));
 				}
 			}
 		}
 
-		//ç§»å‹•å¯èƒ½ãªã‚‰çµæœã«è¿½åŠ 
+		//ˆÚ“®‰Â”\‚È‚çŒ‹‰Ê‚É’Ç‰Á
 		for (int j = 0; j < 8; j++)
 		{
-			if (ends[j] == b->stone[i][j / 2])	//åˆ°ç€å…ˆãŒå…ƒåº§æ¨™ã¨åŒã˜ãªã‚‰ç§»å‹•ä¸å¯
+			if (ends[j] == b->stone[i][j / 2])	//“’…æ‚ªŒ³À•W‚Æ“¯‚¶‚È‚çˆÚ“®•s‰Â
 				continue;
 
 			resCmds[count][0] = '5' - b->stone[i][Y];
@@ -172,7 +181,7 @@ int SearchNext(board_t* b, board_t* resBoards[], char resCmds[][5])
 			
 			switch (j)
 			{
-				//Xæ–¹å‘ç§»å‹•
+				//X•ûŒüˆÚ“®
 			case 0:
 			case 1:
 				resCmds[count][2] = resCmds[count][0];
@@ -212,8 +221,8 @@ int SearchNext(board_t* b, board_t* resBoards[], char resCmds[][5])
 
 int main(int argc, char* args[])
 {
-	//é§’ã®é…ç½®=ç›¤é¢
-	//0-2:é»’, 3-5:ç™½
+	//‹î‚Ì”z’u=”Õ–Ê
+	//0-2:•, 3-5:”’
 	board_t board;
 
 	int8 initial[6][4] = {
@@ -231,7 +240,7 @@ int main(int argc, char* args[])
 
 	board.nextBW = BL;
 
-	//åˆæœŸåŒ–ã“ã“ã¾ã§
+	//‰Šú‰»‚±‚±‚Ü‚Å
 	board_t* nexts[24];
 	char cmds[24][5];
 	int cnt;

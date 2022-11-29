@@ -334,6 +334,7 @@ inst_t DecideNext(board_t* b)
 			break;
 		case 1://勝ち確の時はそれを返す。ただしこのターンで自分が勝てる可能性があるので探索はやめない
 			retInst = insts[i];
+			minValue = -1;
 			break;
 		case 2://この一手で勝てる時は探索もやめてその手を返す
 			return insts[i];
@@ -413,7 +414,11 @@ int main(int argc, char* args[])
 	}
 
 	//PrintBoard(&board);
-	if((WinJudge(&board) == myBW * (-2) + 1) || (foul == 1))
+	if(foul == 1)
+	{
+		printf("You Lose\n");
+	}
+	else if(((WinJudge(&board) == 1) && (myBW == BL)) || ((WinJudge(&board) == -1) && (myBW == WH)))
 	{
 		printf("You Lose\n");
 	}
